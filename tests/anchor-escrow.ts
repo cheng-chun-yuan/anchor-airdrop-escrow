@@ -14,40 +14,45 @@ import {
 import { randomBytes } from "crypto";
 
 describe("anchor-escrow", () => {
+  
   // 0. Set provider, connection and program
   anchor.setProvider(anchor.AnchorProvider.env());
+  const initializer = anchor.Wallet.local() as anchor.Wallet;
   const provider = anchor.getProvider();
   const connection = provider.connection;
   const program = anchor.workspace.AnchorEscrow as anchor.Program<AnchorEscrow>;
 
-  // 1. Boilerplate
-  // Determine dummy token mints and token account addresses
-  const [initializer, taker, mintA, mintB] = Array.from({ length: 4 }, () => Keypair.generate());
-  const [initializerAtaA, initializerAtaB, takerAtaA, takerAtaB] = [initializer, taker]
-    .map((a) => [mintA, mintB].map((m) => getAssociatedTokenAddressSync(m.publicKey, a.publicKey)))
-    .flat();
 
   // Determined Escrow and Vault addresses
-  const seed = new anchor.BN(randomBytes(8));
+  const seed = new anchor.BN(2);
+
+  // 1. Boilerplate
+  // Determine dummy token mints and token account addresses
+  const mintZeus = Keypair.generate();
+  // const mintZeus = new PublicKey("DU5rgsyMNiudhn2hf7UzgW9ahwQYBF7Ew5TZMLACjYq7");
   const escrow = PublicKey.findProgramAddressSync(
     [Buffer.from("state"), seed.toArrayLike(Buffer, "le", 8)],
     program.programId
   )[0];
-  const vault = getAssociatedTokenAddressSync(mintA.publicKey, escrow, true);
+  console.log("MintZeus", mintZeus.publicKey.toBase58());
+  const initializerAtaZeus = getAssociatedTokenAddressSync(mintZeus.publicKey, initializer.publicKey);
+  // const escrow = new PublicKey("6DGNYG7vbkNAi3n4KkRPBtRCm1yfu2T3H42woSmZc5La");
+  console.log("Escrow", escrow.toBase58());
+  const zeusfrens = PublicKey.findProgramAddressSync(
+    [Buffer.from("zeusfrens"), initializer.publicKey.toBuffer(), escrow.toBuffer()],
+    program.programId
+  )[0];
+  const vault = getAssociatedTokenAddressSync(mintZeus.publicKey, escrow, true);
 
   // 2. Utils
   // Account Wrapper
   const accounts = {
     initializer: initializer.publicKey,
-    taker: taker.publicKey,
-    mintA: mintA.publicKey,
-    mintB: mintB.publicKey,
-    initializerAtaA: initializerAtaA,
-    initializerAtaB: initializerAtaB,
-    takerAtaA,
-    takerAtaB,
+    mintZeus: mintZeus.publicKey,
+    initializerAtaZeus: initializerAtaZeus,
     escrow,
     vault,
+    zeusfrens,
     associatedTokenprogram: ASSOCIATED_TOKEN_PROGRAM_ID,
     tokenProgram: TOKEN_PROGRAM_ID,
     systemProgram: SystemProgram.programId,
@@ -73,14 +78,7 @@ describe("anchor-escrow", () => {
     let lamports = await getMinimumBalanceForRentExemptMint(connection);
     let tx = new Transaction();
     tx.instructions = [
-      ...[initializer, taker].map((k) =>
-        SystemProgram.transfer({
-          fromPubkey: provider.publicKey,
-          toPubkey: k.publicKey,
-          lamports: 0.01 * LAMPORTS_PER_SOL,
-        })
-      ),
-      ...[mintA, mintB].map((m) =>
+      ...[mintZeus].map((m) =>
         SystemProgram.createAccount({
           fromPubkey: provider.publicKey,
           newAccountPubkey: m.publicKey,
@@ -90,8 +88,7 @@ describe("anchor-escrow", () => {
         })
       ),
       ...[
-        [mintA.publicKey, initializer.publicKey, initializerAtaA],
-        [mintB.publicKey, taker.publicKey, takerAtaB],
+        [mintZeus.publicKey, initializer.publicKey, initializerAtaZeus],
       ].flatMap((x) => [
         createInitializeMint2Instruction(x[0], 6, x[1], null),
         createAssociatedTokenAccountIdempotentInstruction(provider.publicKey, x[2], x[1], x[0]),
@@ -99,36 +96,82 @@ describe("anchor-escrow", () => {
       ]),
     ];
 
-    await provider.sendAndConfirm(tx, [mintA, mintB, initializer, taker]).then(log);
+    await provider.sendAndConfirm(tx, [mintZeus]).then(log);
   });
 
   it("Initialize", async () => {
-    const initializerAmount = 1e6;
-    const takerAmount = 1e6;
+    const maxAmount = 6e6;
+    const oneTimeAmount = 1e6;
+    const depositAmount = 10e6;
     await program.methods
-      .initialize(seed, new anchor.BN(initializerAmount), new anchor.BN(takerAmount))
+      .initialize(seed,new anchor.BN(oneTimeAmount), new anchor.BN(maxAmount), new anchor.BN(depositAmount))
       .accounts({ ...accounts })
-      .signers([initializer])
       .rpc()
       .then(confirm)
       .then(log);
   });
 
-  xit("Cancel", async () => {
+  it("Claim", async () => {
     await program.methods
-      .cancel()
+      .claim()
       .accounts({ ...accounts })
-      .signers([initializer])
+      .rpc()
+      .then(confirm)
+      .then(log);
+  });
+  it("Claim", async () => {
+    await program.methods
+      .claim()
+      .accounts({ ...accounts })
+      .rpc()
+      .then(confirm)
+      .then(log);
+  });
+  it("Claim", async () => {
+    await program.methods
+      .claim()
+      .accounts({ ...accounts })
+      .rpc()
+      .then(confirm)
+      .then(log);
+  });
+  it("Claim", async () => {
+    await program.methods
+      .claim()
+      .accounts({ ...accounts })
+      .rpc()
+      .then(confirm)
+      .then(log);
+  });
+  it("Claim", async () => {
+    await program.methods
+      .claim()
+      .accounts({ ...accounts })
+      .rpc()
+      .then(confirm)
+      .then(log);
+  });
+  it("Claim", async () => {
+    await program.methods
+      .claim()
+      .accounts({ ...accounts })
+      .rpc()
+      .then(confirm)
+      .then(log);
+  });
+  it("Claim", async () => {
+    await program.methods
+      .claim()
+      .accounts({ ...accounts })
       .rpc()
       .then(confirm)
       .then(log);
   });
 
-  it("Exchange", async () => {
+  it("Withdraw", async () => {
     await program.methods
-      .exchange()
+      .withdraw()
       .accounts({ ...accounts })
-      .signers([taker])
       .rpc()
       .then(confirm)
       .then(log);
@@ -157,4 +200,5 @@ describe("anchor-escrow", () => {
     // console.log(Buffer.from(tx.serialize()).toString("base64"));
     // await provider.sendAndConfirm(tx).then(log);
   });
+
 });
