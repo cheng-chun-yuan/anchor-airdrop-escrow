@@ -24,7 +24,7 @@ pub struct Claim<'info> {
         mut,
         has_one = mint_zeus,
         seeds=[b"state", escrow.seed.to_le_bytes().as_ref()],
-        bump = escrow.bump,
+        bump,
     )]
     escrow: Account<'info, Escrow>,
     #[account(

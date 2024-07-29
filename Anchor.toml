@@ -1,16 +1,29 @@
+[features]
+resolution = true
+skip-lint = false
+seed = true
+
+
 [programs.devnet]
-anchor_escrow = "BxNK559xJFcDD1s7qWJHpQeVg8ZrySXBZHCbLYZFqAnb"
+anchor_airdrop_escrow = "2TS27Nwkkj5xnWxvBYCpjTmxxg8He51L54VbY9fM6yoS"
 
 [registry]
-url = "https://anchor.projectserum.com"
+url = "https://api.apr.dev"
 
 [provider]
-cluster = "https://solana-devnet.g.alchemy.com/v2/y1zYW-ovVofq7OzZo0Z6IHenRnyq_Pbd"
+cluster = "Devnet"
 wallet = "~/new-keypair2.json"
 
 [scripts]
 test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
 
-[toolchain]
-anchor_version = "0.29.0" # `anchor-cli` version to use
-solana_version = "1.17.0" # Solana version to use
+[test]
+startup_wait = 5000
+shutdown_wait = 2000
+upgradeable = false
+
+[test.validator]
+bind_address = "0.0.0.0"
+url = "https://solana-devnet.g.alchemy.com/v2/y1zYW-ovVofq7OzZo0Z6IHenRnyq_Pbd"
+ledger = ".anchor/test-ledger"
+rpc_port = 8899

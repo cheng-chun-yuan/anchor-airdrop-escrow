@@ -3,9 +3,9 @@ mod contexts;
 use contexts::*;
 mod states;
 mod error;
-declare_id!("2fTfygBAg6pcHTffQ916y3GEZybMTa2KRyu9ThXuuRzo");
+declare_id!("2TS27Nwkkj5xnWxvBYCpjTmxxg8He51L54VbY9fM6yoS");
 #[program]
-pub mod anchor_escrow {
+pub mod anchor_airdrop_escrow {
 
     use super::*;
 

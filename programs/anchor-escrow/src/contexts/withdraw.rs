@@ -25,7 +25,7 @@ pub struct Withdraw<'info> {
         has_one = mint_zeus,
         close = initializer,
         seeds=[b"state", escrow.seed.to_le_bytes().as_ref()],
-        bump = escrow.bump,
+        bump,
     )]
     escrow: Account<'info, Escrow>,
     #[account(

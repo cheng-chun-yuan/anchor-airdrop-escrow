@@ -1,55 +1,43 @@
 import * as anchor from "@coral-xyz/anchor";
-import { AnchorEscrow } from "../target/types/anchor_escrow";
-import { Keypair, LAMPORTS_PER_SOL, PublicKey, SystemProgram, Transaction, TransactionMessage, VersionedTransaction } from "@solana/web3.js";
+import { AnchorAirdropEscrow } from "../target/types/anchor_airdrop_escrow";
+import { PublicKey, SystemProgram } from "@solana/web3.js";
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
-  MINT_SIZE,
   TOKEN_PROGRAM_ID,
-  createAssociatedTokenAccountIdempotentInstruction,
-  createInitializeMint2Instruction,
-  createMintToInstruction,
   getAssociatedTokenAddressSync,
-  getMinimumBalanceForRentExemptMint,
 } from "@solana/spl-token";
-import { randomBytes } from "crypto";
 
-describe("anchor-escrow", () => {
+describe("anchor-airdrop-escrow", () => {
   
   // 0. Set provider, connection and program
   anchor.setProvider(anchor.AnchorProvider.env());
   const initializer = anchor.Wallet.local() as anchor.Wallet;
   const provider = anchor.getProvider();
   const connection = provider.connection;
-  const program = anchor.workspace.AnchorEscrow as anchor.Program<AnchorEscrow>;
+  const program = anchor.workspace.AnchorAirdropEscrow as anchor.Program<AnchorAirdropEscrow>;
 
-
-  // Determined Escrow and Vault addresses
-  const seed = new anchor.BN(2);
-
-  // 1. Boilerplate
-  // Determine dummy token mints and token account addresses
-  const mintZeus = Keypair.generate();
-  // const mintZeus = new PublicKey("DU5rgsyMNiudhn2hf7UzgW9ahwQYBF7Ew5TZMLACjYq7");
+  // 1. Define the accounts
+  // Fill in the token you want to airdrop
+  const mintZeus = new PublicKey("BXHy8beuq5D8RpnXpywY21iXB4PaspTUG6TYrRY7LbK2");
+  // Feel free to change the seed to any number you like
+  const seed = new anchor.BN(2591);
   const escrow = PublicKey.findProgramAddressSync(
     [Buffer.from("state"), seed.toArrayLike(Buffer, "le", 8)],
     program.programId
   )[0];
-  console.log("MintZeus", mintZeus.publicKey.toBase58());
-  const initializerAtaZeus = getAssociatedTokenAddressSync(mintZeus.publicKey, initializer.publicKey);
-  // const escrow = new PublicKey("6DGNYG7vbkNAi3n4KkRPBtRCm1yfu2T3H42woSmZc5La");
-  console.log("Escrow", escrow.toBase58());
+  const initializerAtaZeus = getAssociatedTokenAddressSync(mintZeus, initializer.publicKey);
   const zeusfrens = PublicKey.findProgramAddressSync(
     [Buffer.from("zeusfrens"), initializer.publicKey.toBuffer(), escrow.toBuffer()],
     program.programId
   )[0];
-  const vault = getAssociatedTokenAddressSync(mintZeus.publicKey, escrow, true);
+  const vault = getAssociatedTokenAddressSync(mintZeus, escrow, true);
 
-  // 2. Utils
   // Account Wrapper
   const accounts = {
     initializer: initializer.publicKey,
-    mintZeus: mintZeus.publicKey,
+    mintZeus: mintZeus,
     initializerAtaZeus: initializerAtaZeus,
+    claimerAtaZeus: initializerAtaZeus,
     escrow,
     vault,
     zeusfrens,
@@ -57,6 +45,11 @@ describe("anchor-escrow", () => {
     tokenProgram: TOKEN_PROGRAM_ID,
     systemProgram: SystemProgram.programId,
   };
+
+  // console.log("MintZeus", mintZeus.toBase58());
+  // console.log("Escrow", escrow.toBase58());
+  // console.log("Zeusfrens", zeusfrens.toBase58());
+  // console.log("Vault", vault.toBase58());
 
   const confirm = async (signature: string): Promise<string> => {
     const block = await connection.getLatestBlockhash();
@@ -74,35 +67,37 @@ describe("anchor-escrow", () => {
     return signature;
   };
 
-  it("Airdrop and create mints", async () => {
-    let lamports = await getMinimumBalanceForRentExemptMint(connection);
-    let tx = new Transaction();
-    tx.instructions = [
-      ...[mintZeus].map((m) =>
-        SystemProgram.createAccount({
-          fromPubkey: provider.publicKey,
-          newAccountPubkey: m.publicKey,
-          lamports,
-          space: MINT_SIZE,
-          programId: TOKEN_PROGRAM_ID,
-        })
-      ),
-      ...[
-        [mintZeus.publicKey, initializer.publicKey, initializerAtaZeus],
-      ].flatMap((x) => [
-        createInitializeMint2Instruction(x[0], 6, x[1], null),
-        createAssociatedTokenAccountIdempotentInstruction(provider.publicKey, x[2], x[1], x[0]),
-        createMintToInstruction(x[0], x[2], x[1], 1e9),
-      ]),
-    ];
+  // // if you want to create a mint and airdrop tokens
+  // it("Airdrop and create mints", async () => {
+  //   let lamports = await getMinimumBalanceForRentExemptMint(connection);
+  //   let tx = new Transaction();
+  //   tx.instructions = [
+  //     ...[mintZeus].map((m) =>
+  //       SystemProgram.createAccount({
+  //         fromPubkey: provider.publicKey,
+  //         newAccountPubkey: m.publicKey,
+  //         lamports,
+  //         space: MINT_SIZE,
+  //         programId: TOKEN_PROGRAM_ID,
+  //       })
+  //     ),
+  //     ...[
+  //       [mintZeus.publicKey, initializer.publicKey, initializerAtaZeus],
+  //     ].flatMap((x) => [
+  //       createInitializeMint2Instruction(x[0], 6, x[1], null),
+  //       createAssociatedTokenAccountIdempotentInstruction(provider.publicKey, x[2], x[1], x[0]),
+  //       createMintToInstruction(x[0], x[2], x[1], 1e9),
+  //     ]),
+  //   ];
 
-    await provider.sendAndConfirm(tx, [mintZeus]).then(log);
-  });
+  //   await provider.sendAndConfirm(tx, [mintZeus]).then(log);
+  // });
 
+  // Create a new airdrop(escrow)
   it("Initialize", async () => {
-    const maxAmount = 6e6;
-    const oneTimeAmount = 1e6;
-    const depositAmount = 10e6;
+    const maxAmount = 30e8;
+    const oneTimeAmount = 10e8;
+    const depositAmount = 1000e8;
     await program.methods
       .initialize(seed,new anchor.BN(oneTimeAmount), new anchor.BN(maxAmount), new anchor.BN(depositAmount))
       .accounts({ ...accounts })
@@ -111,7 +106,8 @@ describe("anchor-escrow", () => {
       .then(log);
   });
 
-  it("Claim", async () => {
+  // Claim the airdrop
+  xit("Claim", async () => {
     await program.methods
       .claim()
       .accounts({ ...accounts })
@@ -119,39 +115,7 @@ describe("anchor-escrow", () => {
       .then(confirm)
       .then(log);
   });
-  it("Claim", async () => {
-    await program.methods
-      .claim()
-      .accounts({ ...accounts })
-      .rpc()
-      .then(confirm)
-      .then(log);
-  });
-  it("Claim", async () => {
-    await program.methods
-      .claim()
-      .accounts({ ...accounts })
-      .rpc()
-      .then(confirm)
-      .then(log);
-  });
-  it("Claim", async () => {
-    await program.methods
-      .claim()
-      .accounts({ ...accounts })
-      .rpc()
-      .then(confirm)
-      .then(log);
-  });
-  it("Claim", async () => {
-    await program.methods
-      .claim()
-      .accounts({ ...accounts })
-      .rpc()
-      .then(confirm)
-      .then(log);
-  });
-  it("Claim", async () => {
+  xit("Claim", async () => {
     await program.methods
       .claim()
       .accounts({ ...accounts })
@@ -168,6 +132,7 @@ describe("anchor-escrow", () => {
       .then(log);
   });
 
+  // Withdraw remaining tokens in Vault
   it("Withdraw", async () => {
     await program.methods
       .withdraw()
