@@ -7,21 +7,19 @@ use anchor_spl::{
 use crate::states::Escrow;
 
 #[derive(Accounts)]
-#[instruction(seed: u64, initializer_amount: u64)]
+#[instruction(seed: u64)]
 pub struct Initialize<'info> {
     #[account(mut)]
     pub initializer: Signer<'info>,
-    pub mint_a: Account<'info, Mint>,
-    pub mint_b: Account<'info, Mint>,
+    pub mint_zeus: Account<'info, Mint>,
     #[account(
         mut,
-        constraint = initializer_ata_a.amount >= initializer_amount,
-        associated_token::mint = mint_a,
+        associated_token::mint = mint_zeus,
         associated_token::authority = initializer
     )]
-    pub initializer_ata_a: Account<'info, TokenAccount>,
+    pub initializer_ata_zeus: Account<'info, TokenAccount>,
     #[account(
-        init_if_needed,
+        init,
         payer = initializer,
         space = Escrow::INIT_SPACE,
         seeds = [b"state".as_ref(), &seed.to_le_bytes()],
@@ -29,9 +27,9 @@ pub struct Initialize<'info> {
     )]
     pub escrow: Account<'info, Escrow>,
     #[account(
-        init_if_needed,
+        init,
         payer = initializer,
-        associated_token::mint = mint_a,
+        associated_token::mint = mint_zeus,
         associated_token::authority = escrow
     )]
     pub vault: Account<'info, TokenAccount>,
@@ -45,33 +43,35 @@ impl<'info> Initialize<'info> {
         &mut self,
         seed: u64,
         bumps: &InitializeBumps,
-        initializer_amount: u64,
-        taker_amount: u64,
+        one_time_amount: u64,
+        max_amount: u64,
+        deposit_amount: u64,
     ) -> Result<()> {
         self.escrow.set_inner(Escrow {
             seed,
             bump: bumps.escrow,
             initializer: self.initializer.key(),
-            mint_a: self.mint_a.key(),
-            mint_b: self.mint_b.key(),
-            initializer_amount,
-            taker_amount,
+            mint_zeus: self.mint_zeus.key(),
+            one_time_amount,
+            max_amount,
+            deposit_amount,
+            remaining_amount: deposit_amount,
         });
         Ok(())
     }
 
-    pub fn deposit(&mut self, initializer_amount: u64) -> Result<()> {
+    pub fn deposit(&mut self, deposit_amount: u64) -> Result<()> {
         transfer_checked(
             self.into_deposit_context(),
-            initializer_amount,
-            self.mint_a.decimals,
+            deposit_amount,
+            self.mint_zeus.decimals,
         )
     }
 
     fn into_deposit_context(&self) -> CpiContext<'_, '_, '_, 'info, TransferChecked<'info>> {
         let cpi_accounts = TransferChecked {
-            from: self.initializer_ata_a.to_account_info(),
-            mint: self.mint_a.to_account_info(),
+            from: self.initializer_ata_zeus.to_account_info(),
+            mint: self.mint_zeus.to_account_info(),
             to: self.vault.to_account_info(),
             authority: self.initializer.to_account_info(),
         };

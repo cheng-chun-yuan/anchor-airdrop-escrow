@@ -2,30 +2,30 @@ use anchor_lang::prelude::*;
 mod contexts;
 use contexts::*;
 mod states;
-
-declare_id!("AHnWUmyXfyRqtN3AwoRxMoyVKskyF9cS59YE2ZbqB8x6");
-
+mod error;
+declare_id!("CCNiycvm2k9FaJ7DRFEKgw6YChSLKkwZXmw3GjE52XzU");
 #[program]
-pub mod anchor_escrow {
+pub mod anchor_airdrop_escrow {
+
     use super::*;
 
     pub fn initialize(
         ctx: Context<Initialize>,
         seed: u64,
-        initializer_amount: u64,
-        taker_amount: u64,
+        one_time_amount: u64,
+        max_amount: u64,
+        deposit_amount: u64,
     ) -> Result<()> {
         ctx.accounts
-            .initialize_escrow(seed, &ctx.bumps, initializer_amount, taker_amount)?;
-        ctx.accounts.deposit(initializer_amount)
+            .initialize_escrow(seed, &ctx.bumps, one_time_amount, max_amount, deposit_amount)?;
+        ctx.accounts.deposit(deposit_amount)
     }
 
-    pub fn cancel(ctx: Context<Cancel>) -> Result<()> {
+    pub fn withdraw(ctx: Context<Withdraw>) -> Result<()> {
         ctx.accounts.refund_and_close_vault()
     }
 
-    pub fn exchange(ctx: Context<Exchange>) -> Result<()> {
-        ctx.accounts.deposit()?;
-        ctx.accounts.withdraw_and_close_vault()
+    pub fn claim(ctx: Context<Claim>) -> Result<()> {
+        ctx.accounts.claim()
     }
 }
