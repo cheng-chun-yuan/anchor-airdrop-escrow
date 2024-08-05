@@ -77,10 +77,6 @@ impl<'info> Claim<'info> {
         if self.zeusfrens.claimed_amount + self.escrow.one_time_amount > self.escrow.max_amount {
             return Err(ErrorCode::OutOfMaxAmount.into());
         }
-        if self.escrow.remaining_amount < self.escrow.one_time_amount {
-            return Err(ErrorCode::NoRemainingAmount.into());
-        }
-        self.escrow.remaining_amount -= self.escrow.one_time_amount;
         self.zeusfrens.set_inner(Zeusfrens {
             claimed_amount: self.zeusfrens.claimed_amount + self.escrow.one_time_amount,
         });

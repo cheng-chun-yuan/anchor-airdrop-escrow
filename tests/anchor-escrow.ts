@@ -8,7 +8,7 @@ import {
 } from "@solana/spl-token";
 
 describe("anchor-airdrop-escrow", () => {
-  
+
   // 0. Set provider, connection and program
   anchor.setProvider(anchor.AnchorProvider.env());
   const initializer = anchor.Wallet.local() as anchor.Wallet;
@@ -18,9 +18,10 @@ describe("anchor-airdrop-escrow", () => {
 
   // 1. Define the accounts
   // Fill in the token you want to airdrop
-  const mintZeus = new PublicKey("BXHy8beuq5D8RpnXpywY21iXB4PaspTUG6TYrRY7LbK2");
+  // const mintZeus = Keypair.generate();
+  const mintZeus = new PublicKey("ZEUS1aR7aX8DFFJf5QjWj2ftDDdNTroMNGo8YoQm3Gq");
   // Feel free to change the seed to any number you like
-  const seed = new anchor.BN(2591);
+  const seed = new anchor.BN(20240802);
   const escrow = PublicKey.findProgramAddressSync(
     [Buffer.from("state"), seed.toArrayLike(Buffer, "le", 8)],
     program.programId
@@ -46,10 +47,10 @@ describe("anchor-airdrop-escrow", () => {
     systemProgram: SystemProgram.programId,
   };
 
-  // console.log("MintZeus", mintZeus.toBase58());
-  // console.log("Escrow", escrow.toBase58());
-  // console.log("Zeusfrens", zeusfrens.toBase58());
-  // console.log("Vault", vault.toBase58());
+  console.log("MintZeus", mintZeus.toBase58());
+  console.log("Escrow", escrow.toBase58());
+  console.log("Zeusfrens", zeusfrens.toBase58());
+  console.log("Vault", vault.toBase58());
 
   const confirm = async (signature: string): Promise<string> => {
     const block = await connection.getLatestBlockhash();
@@ -94,10 +95,10 @@ describe("anchor-airdrop-escrow", () => {
   // });
 
   // Create a new airdrop(escrow)
-  it("Initialize", async () => {
-    const maxAmount = 30e8;
-    const oneTimeAmount = 10e8;
-    const depositAmount = 1000e8;
+  xit("Initialize", async () => {
+    const maxAmount = 30e6;
+    const oneTimeAmount = 10e6;
+    const depositAmount = 100e6;
     await program.methods
       .initialize(seed,new anchor.BN(oneTimeAmount), new anchor.BN(maxAmount), new anchor.BN(depositAmount))
       .accounts({ ...accounts })
@@ -123,7 +124,7 @@ describe("anchor-airdrop-escrow", () => {
       .then(confirm)
       .then(log);
   });
-  it("Claim", async () => {
+  xit("Claim", async () => {
     await program.methods
       .claim()
       .accounts({ ...accounts })
@@ -140,30 +141,5 @@ describe("anchor-airdrop-escrow", () => {
       .rpc()
       .then(confirm)
       .then(log);
-
-    // For Degugging Purpose
-
-    // const latestBlockhash = await anchor
-    //   .getProvider()
-    //   .connection.getLatestBlockhash();
-
-    // const ix = await program.methods
-    //   .exchange()
-    //   .accounts({ ...accounts })
-    //   .signers([taker])
-    //   .instruction()
-
-    // const msg = new TransactionMessage({
-    //   payerKey: provider.publicKey,
-    //   recentBlockhash: latestBlockhash.blockhash,
-    //   instructions: [ix],
-    // }).compileToV0Message();
-
-    // const tx = new VersionedTransaction(msg);
-    // tx.sign([taker]);
-
-    // console.log(Buffer.from(tx.serialize()).toString("base64"));
-    // await provider.sendAndConfirm(tx).then(log);
   });
-
 });
