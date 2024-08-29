@@ -1,12 +1,10 @@
+use crate::error::ErrorCode;
+use crate::states::{Escrow, Zeusfrens};
 use anchor_lang::prelude::*;
 use anchor_spl::{
     associated_token::AssociatedToken,
-    token::{
-        transfer_checked, Mint, Token, TokenAccount, TransferChecked,
-    },
+    token::{transfer_checked, Mint, Token, TokenAccount, TransferChecked},
 };
-use crate::error::ErrorCode;
-use crate::states::{Escrow, Zeusfrens};
 
 #[derive(Accounts)]
 pub struct Claim<'info> {

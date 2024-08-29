@@ -1,8 +1,8 @@
 use anchor_lang::prelude::*;
 mod contexts;
 use contexts::*;
-mod states;
 mod error;
+mod states;
 declare_id!("CCNiycvm2k9FaJ7DRFEKgw6YChSLKkwZXmw3GjE52XzU");
 #[program]
 pub mod anchor_airdrop_escrow {
@@ -16,8 +16,13 @@ pub mod anchor_airdrop_escrow {
         max_amount: u64,
         deposit_amount: u64,
     ) -> Result<()> {
-        ctx.accounts
-            .initialize_escrow(seed, &ctx.bumps, one_time_amount, max_amount, deposit_amount)?;
+        ctx.accounts.initialize_escrow(
+            seed,
+            &ctx.bumps,
+            one_time_amount,
+            max_amount,
+            deposit_amount,
+        )?;
         ctx.accounts.deposit(deposit_amount)
     }
 
