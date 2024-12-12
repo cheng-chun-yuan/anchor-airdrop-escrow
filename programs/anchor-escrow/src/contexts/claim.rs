@@ -82,6 +82,8 @@ impl<'info> Claim<'info> {
         self.zeusfrens.set_inner(Zeusfrens {
             claimed_amount: self.zeusfrens.claimed_amount + self.escrow.one_time_amount,
         });
+        self.escrow.remaining_amount -= self.escrow.one_time_amount;
+
         Ok(())
     }
 }
