@@ -3,7 +3,7 @@ import { AnchorAirdropEscrow } from "../target/types/anchor_airdrop_escrow";
 import { PublicKey, SystemProgram } from "@solana/web3.js";
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
-  TOKEN_PROGRAM_ID,
+  TOKEN_2022_PROGRAM_ID,
   getAssociatedTokenAddressSync,
 } from "@solana/spl-token";
 
@@ -16,22 +16,23 @@ describe("anchor-airdrop-escrow", () => {
   const connection = provider.connection;
   const program = anchor.workspace.AnchorAirdropEscrow as anchor.Program<AnchorAirdropEscrow>;
 
+  const tokenProgram = TOKEN_2022_PROGRAM_ID;
   // 1. Define the accounts
   // Fill in the token you want to airdrop
   // const mintZeus = Keypair.generate();
-  const mintZeus = new PublicKey("BXHy8beuq5D8RpnXpywY21iXB4PaspTUG6TYrRY7LbK2");
+  const mintZeus = new PublicKey("Aqk2sTGwLuojdYSHDLCXgidGNUQeskWS2JbKXPksHdaG");
   // Feel free to change the seed to any number you like
   const seed = new anchor.BN(20240802);
   const escrow = PublicKey.findProgramAddressSync(
     [Buffer.from("state"), seed.toArrayLike(Buffer, "le", 8)],
     program.programId
   )[0];
-  const initializerAtaZeus = getAssociatedTokenAddressSync(mintZeus, initializer.publicKey);
+  const initializerAtaZeus = getAssociatedTokenAddressSync(mintZeus, initializer.publicKey, false, tokenProgram)
   const zeusfrens = PublicKey.findProgramAddressSync(
     [Buffer.from("zeusfrens"), initializer.publicKey.toBuffer(), escrow.toBuffer()],
     program.programId
   )[0];
-  const vault = getAssociatedTokenAddressSync(mintZeus, escrow, true);
+  const vault = getAssociatedTokenAddressSync(mintZeus, escrow, true, tokenProgram);
 
   // Account Wrapper
   const accounts = {
@@ -43,10 +44,11 @@ describe("anchor-airdrop-escrow", () => {
     vault,
     zeusfrens,
     associatedTokenprogram: ASSOCIATED_TOKEN_PROGRAM_ID,
-    tokenProgram: TOKEN_PROGRAM_ID,
+    tokenProgram: TOKEN_2022_PROGRAM_ID,
     systemProgram: SystemProgram.programId,
   };
 
+  console.log("initializer",initializerAtaZeus.toBase58())
   console.log("MintZeus", mintZeus.toBase58());
   console.log("Escrow", escrow.toBase58());
   console.log("Zeusfrens", zeusfrens.toBase58());

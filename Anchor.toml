@@ -5,7 +5,7 @@ resolution = true
 skip-lint = false
 
 [programs.devnet]
-anchor_airdrop_escrow = "BUfdJn6KswtnMx6kGX4ufGPYsPRiN2N47iFNnKHVyaud"
+anchor_airdrop_escrow = "BvuKr6wXmoZ1vLGbSmwfjThQ7ippDHJbZDkTK3wy8Ye5"
 
 [registry]
 url = "https://api.apr.dev"

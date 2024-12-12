@@ -17,7 +17,8 @@ pub struct Claim<'info> {
         init_if_needed,
         payer = claimer,
         associated_token::mint = mint_zeus,
-        associated_token::authority = claimer
+        associated_token::authority = claimer,
+        associated_token::token_program = token_program,
     )]
     claimer_ata_zeus: InterfaceAccount<'info, TokenAccount>,
     #[account(
@@ -38,7 +39,8 @@ pub struct Claim<'info> {
     #[account(
         mut,
         associated_token::mint = mint_zeus,
-        associated_token::authority = escrow
+        associated_token::authority = escrow,
+        associated_token::token_program = token_program,
     )]
     pub vault: InterfaceAccount<'info, TokenAccount>,
     associated_token_program: Program<'info, AssociatedToken>,

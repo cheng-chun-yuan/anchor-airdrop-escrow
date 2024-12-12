@@ -15,7 +15,8 @@ pub struct Initialize<'info> {
     #[account(
         mut,
         associated_token::mint = mint_zeus,
-        associated_token::authority = initializer
+        associated_token::authority = initializer,
+        associated_token::token_program = token_program,
     )]
     pub initializer_ata_zeus: InterfaceAccount<'info, TokenAccount>,
     #[account(
@@ -30,7 +31,8 @@ pub struct Initialize<'info> {
         init,
         payer = initializer,
         associated_token::mint = mint_zeus,
-        associated_token::authority = escrow
+        associated_token::authority = escrow,
+        associated_token::token_program = token_program,
     )]
     pub vault: InterfaceAccount<'info, TokenAccount>,
     pub associated_token_program: Program<'info, AssociatedToken>,
