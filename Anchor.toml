@@ -1,18 +1,18 @@
+[toolchain]
+
 [features]
 resolution = true
 skip-lint = false
-seed = true
-
 
 [programs.devnet]
-anchor_airdrop_escrow = "2TS27Nwkkj5xnWxvBYCpjTmxxg8He51L54VbY9fM6yoS"
+anchor_airdrop_escrow = "BUfdJn6KswtnMx6kGX4ufGPYsPRiN2N47iFNnKHVyaud"
 
 [registry]
 url = "https://api.apr.dev"
 
 [provider]
 cluster = "Devnet"
-wallet = "~/new-keypair2.json"
+wallet = "~/.config/solana/id.json"
 
 [scripts]
 test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"

@@ -19,7 +19,7 @@ describe("anchor-airdrop-escrow", () => {
   // 1. Define the accounts
   // Fill in the token you want to airdrop
   // const mintZeus = Keypair.generate();
-  const mintZeus = new PublicKey("ZEUS1aR7aX8DFFJf5QjWj2ftDDdNTroMNGo8YoQm3Gq");
+  const mintZeus = new PublicKey("BXHy8beuq5D8RpnXpywY21iXB4PaspTUG6TYrRY7LbK2");
   // Feel free to change the seed to any number you like
   const seed = new anchor.BN(20240802);
   const escrow = PublicKey.findProgramAddressSync(
@@ -95,7 +95,7 @@ describe("anchor-airdrop-escrow", () => {
   // });
 
   // Create a new airdrop(escrow)
-  xit("Initialize", async () => {
+  it("Initialize", async () => {
     const maxAmount = 30e6;
     const oneTimeAmount = 10e6;
     const depositAmount = 100e6;
@@ -108,7 +108,7 @@ describe("anchor-airdrop-escrow", () => {
   });
 
   // Claim the airdrop
-  xit("Claim", async () => {
+  it("Claim", async () => {
     await program.methods
       .claim()
       .accounts({ ...accounts })
@@ -116,7 +116,7 @@ describe("anchor-airdrop-escrow", () => {
       .then(confirm)
       .then(log);
   });
-  xit("Claim", async () => {
+  it("Claim", async () => {
     await program.methods
       .claim()
       .accounts({ ...accounts })
@@ -124,7 +124,7 @@ describe("anchor-airdrop-escrow", () => {
       .then(confirm)
       .then(log);
   });
-  xit("Claim", async () => {
+  it("Claim", async () => {
     await program.methods
       .claim()
       .accounts({ ...accounts })

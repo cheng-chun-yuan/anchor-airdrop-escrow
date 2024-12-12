@@ -1,8 +1,8 @@
 use anchor_lang::prelude::*;
 use anchor_spl::{
     associated_token::AssociatedToken,
-    token::{
-        transfer_checked, Mint, Token, TokenAccount, TransferChecked,
+    token_interface::{
+        transfer_checked, Mint, TokenInterface, TokenAccount, TransferChecked,
     },
 };
 use crate::error::ErrorCode;
@@ -12,14 +12,14 @@ use crate::states::{Escrow, Zeusfrens};
 pub struct Claim<'info> {
     #[account(mut)]
     claimer: Signer<'info>,
-    mint_zeus: Account<'info, Mint>,
+    mint_zeus: InterfaceAccount<'info, Mint>,
     #[account(
         init_if_needed,
         payer = claimer,
         associated_token::mint = mint_zeus,
         associated_token::authority = claimer
     )]
-    claimer_ata_zeus: Account<'info, TokenAccount>,
+    claimer_ata_zeus: InterfaceAccount<'info, TokenAccount>,
     #[account(
         mut,
         has_one = mint_zeus,
@@ -40,9 +40,9 @@ pub struct Claim<'info> {
         associated_token::mint = mint_zeus,
         associated_token::authority = escrow
     )]
-    pub vault: Account<'info, TokenAccount>,
+    pub vault: InterfaceAccount<'info, TokenAccount>,
     associated_token_program: Program<'info, AssociatedToken>,
-    token_program: Program<'info, Token>,
+    token_program: Interface<'info, TokenInterface>,
     system_program: Program<'info, System>,
 }
 
