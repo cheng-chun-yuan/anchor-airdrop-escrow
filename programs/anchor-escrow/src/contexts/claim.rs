@@ -6,24 +6,24 @@ use anchor_spl::{
     },
 };
 use crate::error::ErrorCode;
-use crate::states::{Escrow, Zeusfrens};
+use crate::states::{Escrow, Frens};
 
 #[derive(Accounts)]
 pub struct Claim<'info> {
     #[account(mut)]
     claimer: Signer<'info>,
-    mint_zeus: InterfaceAccount<'info, Mint>,
+    mint: InterfaceAccount<'info, Mint>,
     #[account(
         init_if_needed,
         payer = claimer,
-        associated_token::mint = mint_zeus,
+        associated_token::mint = mint,
         associated_token::authority = claimer,
         associated_token::token_program = token_program,
     )]
-    claimer_ata_zeus: InterfaceAccount<'info, TokenAccount>,
+    claimer_ata: InterfaceAccount<'info, TokenAccount>,
     #[account(
         mut,
-        has_one = mint_zeus,
+        has_one = mint,
         seeds=[b"state", escrow.seed.to_le_bytes().as_ref()],
         bump,
     )]
@@ -31,14 +31,14 @@ pub struct Claim<'info> {
     #[account(
         init_if_needed,
         payer = claimer,
-        seeds = [b"zeusfrens", claimer.key().as_ref(), escrow.key().as_ref()],
-        space = Zeusfrens::INIT_SPACE,
+        seeds = [b"frens", claimer.key().as_ref(), escrow.key().as_ref()],
+        space = Frens::INIT_SPACE,
         bump,
     )]
-    pub zeusfrens: Account<'info, Zeusfrens>,
+    pub frens: Account<'info, Frens>,
     #[account(
         mut,
-        associated_token::mint = mint_zeus,
+        associated_token::mint = mint,
         associated_token::authority = escrow,
         associated_token::token_program = token_program,
     )]
@@ -56,31 +56,31 @@ impl<'info> Claim<'info> {
             &[self.escrow.bump],
         ]];
 
-        self.update_zeusfrens()?;
+        self.update_frens()?;
 
         transfer_checked(
             self.into_claim_context().with_signer(&signer_seeds),
             self.escrow.one_time_amount,
-            self.mint_zeus.decimals,
+            self.mint.decimals,
         )
     }
 
     fn into_claim_context(&self) -> CpiContext<'_, '_, '_, 'info, TransferChecked<'info>> {
         let cpi_accounts = TransferChecked {
             from: self.vault.to_account_info(),
-            mint: self.mint_zeus.to_account_info(),
-            to: self.claimer_ata_zeus.to_account_info(),
+            mint: self.mint.to_account_info(),
+            to: self.claimer_ata.to_account_info(),
             authority: self.escrow.to_account_info(),
         };
         CpiContext::new(self.token_program.to_account_info(), cpi_accounts)
     }
 
-    fn update_zeusfrens(&mut self) -> Result<()> {
-        if self.zeusfrens.claimed_amount + self.escrow.one_time_amount > self.escrow.max_amount {
+    fn update_frens(&mut self) -> Result<()> {
+        if self.frens.claimed_amount + self.escrow.one_time_amount > self.escrow.max_amount {
             return Err(ErrorCode::OutOfMaxAmount.into());
         }
-        self.zeusfrens.set_inner(Zeusfrens {
-            claimed_amount: self.zeusfrens.claimed_amount + self.escrow.one_time_amount,
+        self.frens.set_inner(Frens {
+            claimed_amount: self.frens.claimed_amount + self.escrow.one_time_amount,
         });
         self.escrow.remaining_amount -= self.escrow.one_time_amount;
 

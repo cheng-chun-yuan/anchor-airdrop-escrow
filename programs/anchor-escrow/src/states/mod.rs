@@ -1,4 +1,4 @@
 pub mod escrow;
 pub use escrow::Escrow;
-pub mod zeusfrens;
-pub use zeusfrens::Zeusfrens;
+pub mod frens;
+pub use frens::Frens;

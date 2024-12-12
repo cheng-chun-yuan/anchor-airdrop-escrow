@@ -19,39 +19,39 @@ describe("anchor-airdrop-escrow", () => {
   const tokenProgram = TOKEN_2022_PROGRAM_ID;
   // 1. Define the accounts
   // Fill in the token you want to airdrop
-  // const mintZeus = Keypair.generate();
-  const mintZeus = new PublicKey("Aqk2sTGwLuojdYSHDLCXgidGNUQeskWS2JbKXPksHdaG");
+  // const mint = Keypair.generate();
+  const mintToken = new PublicKey("Aqk2sTGwLuojdYSHDLCXgidGNUQeskWS2JbKXPksHdaG");
   // Feel free to change the seed to any number you like
-  const seed = new anchor.BN(20240802);
+  const seed = new anchor.BN(20241212);
   const escrow = PublicKey.findProgramAddressSync(
     [Buffer.from("state"), seed.toArrayLike(Buffer, "le", 8)],
     program.programId
   )[0];
-  const initializerAtaZeus = getAssociatedTokenAddressSync(mintZeus, initializer.publicKey, false, tokenProgram)
-  const zeusfrens = PublicKey.findProgramAddressSync(
-    [Buffer.from("zeusfrens"), initializer.publicKey.toBuffer(), escrow.toBuffer()],
+  const initializerAta = getAssociatedTokenAddressSync(mintToken, initializer.publicKey, false, tokenProgram)
+  const frens = PublicKey.findProgramAddressSync(
+    [Buffer.from("frens"), initializer.publicKey.toBuffer(), escrow.toBuffer()],
     program.programId
   )[0];
-  const vault = getAssociatedTokenAddressSync(mintZeus, escrow, true, tokenProgram);
+  const vault = getAssociatedTokenAddressSync(mintToken, escrow, true, tokenProgram);
 
   // Account Wrapper
   const accounts = {
     initializer: initializer.publicKey,
-    mintZeus: mintZeus,
-    initializerAtaZeus: initializerAtaZeus,
-    claimerAtaZeus: initializerAtaZeus,
+    mint: mintToken,
+    initializerAta: initializerAta,
+    claimerAtaZeus: initializerAta,
     escrow,
     vault,
-    zeusfrens,
+    frens,
     associatedTokenprogram: ASSOCIATED_TOKEN_PROGRAM_ID,
     tokenProgram: TOKEN_2022_PROGRAM_ID,
     systemProgram: SystemProgram.programId,
   };
 
-  console.log("initializer",initializerAtaZeus.toBase58())
-  console.log("MintZeus", mintZeus.toBase58());
+  console.log("initializer",initializerAta.toBase58())
+  console.log("mint", mintToken.toBase58());
   console.log("Escrow", escrow.toBase58());
-  console.log("Zeusfrens", zeusfrens.toBase58());
+  console.log("Frens", frens.toBase58());
   console.log("Vault", vault.toBase58());
 
   const confirm = async (signature: string): Promise<string> => {
@@ -75,7 +75,7 @@ describe("anchor-airdrop-escrow", () => {
   //   let lamports = await getMinimumBalanceForRentExemptMint(connection);
   //   let tx = new Transaction();
   //   tx.instructions = [
-  //     ...[mintZeus].map((m) =>
+  //     ...[mint].map((m) =>
   //       SystemProgram.createAccount({
   //         fromPubkey: provider.publicKey,
   //         newAccountPubkey: m.publicKey,
@@ -85,7 +85,7 @@ describe("anchor-airdrop-escrow", () => {
   //       })
   //     ),
   //     ...[
-  //       [mintZeus.publicKey, initializer.publicKey, initializerAtaZeus],
+  //       [mint.publicKey, initializer.publicKey, initializerAta],
   //     ].flatMap((x) => [
   //       createInitializeMint2Instruction(x[0], 6, x[1], null),
   //       createAssociatedTokenAccountIdempotentInstruction(provider.publicKey, x[2], x[1], x[0]),
@@ -93,7 +93,7 @@ describe("anchor-airdrop-escrow", () => {
   //     ]),
   //   ];
 
-  //   await provider.sendAndConfirm(tx, [mintZeus]).then(log);
+  //   await provider.sendAndConfirm(tx, [mint]).then(log);
   // });
 
   // Create a new airdrop(escrow)
@@ -103,6 +103,16 @@ describe("anchor-airdrop-escrow", () => {
     const depositAmount = 100e6;
     await program.methods
       .initialize(seed,new anchor.BN(oneTimeAmount), new anchor.BN(maxAmount), new anchor.BN(depositAmount))
+      .accounts({ ...accounts })
+      .rpc()
+      .then(confirm)
+      .then(log);
+  });
+
+  it("Deposit", async () => {
+    const depositAmount = 1e8;
+    await program.methods
+      .deposit(new anchor.BN(depositAmount))
       .accounts({ ...accounts })
       .rpc()
       .then(confirm)

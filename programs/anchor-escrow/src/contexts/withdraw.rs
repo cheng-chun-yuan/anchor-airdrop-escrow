@@ -12,18 +12,18 @@ use crate::states::Escrow;
 pub struct Withdraw<'info> {
     #[account(mut)]
     initializer: Signer<'info>,
-    mint_zeus: InterfaceAccount<'info, Mint>,
+    mint: InterfaceAccount<'info, Mint>,
     #[account(
         mut,
-        associated_token::mint = mint_zeus,
+        associated_token::mint = mint,
         associated_token::authority = initializer,
         associated_token::token_program = token_program,
     )]
-    initializer_ata_zeus: InterfaceAccount<'info, TokenAccount>,
+    initializer_ata: InterfaceAccount<'info, TokenAccount>,
     #[account(
         mut,
         has_one = initializer,
-        has_one = mint_zeus,
+        has_one = mint,
         close = initializer,
         seeds=[b"state", escrow.seed.to_le_bytes().as_ref()],
         bump,
@@ -31,7 +31,7 @@ pub struct Withdraw<'info> {
     escrow: Account<'info, Escrow>,
     #[account(
         mut,
-        associated_token::mint = mint_zeus,
+        associated_token::mint = mint,
         associated_token::authority = escrow,
         associated_token::token_program = token_program,
     )]
@@ -52,7 +52,7 @@ impl<'info> Withdraw<'info> {
         transfer_checked(
             self.into_refund_context().with_signer(&signer_seeds),
             self.escrow.remaining_amount,
-            self.mint_zeus.decimals,
+            self.mint.decimals,
         )?;
 
         close_account(self.into_close_context().with_signer(&signer_seeds))
@@ -61,8 +61,8 @@ impl<'info> Withdraw<'info> {
     fn into_refund_context(&self) -> CpiContext<'_, '_, '_, 'info, TransferChecked<'info>> {
         let cpi_accounts = TransferChecked {
             from: self.vault.to_account_info(),
-            mint: self.mint_zeus.to_account_info(),
-            to: self.initializer_ata_zeus.to_account_info(),
+            mint: self.mint.to_account_info(),
+            to: self.initializer_ata.to_account_info(),
             authority: self.escrow.to_account_info(),
         };
         CpiContext::new(self.token_program.to_account_info(), cpi_accounts)

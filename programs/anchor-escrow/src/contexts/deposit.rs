@@ -8,7 +8,7 @@ use crate::states::Escrow;
 
 #[derive(Accounts)]
 #[instruction(seed: u64)]
-pub struct Initialize<'info> {
+pub struct Deposit<'info> {
     #[account(mut)]
     pub initializer: Signer<'info>,
     pub mint: InterfaceAccount<'info, Mint>,
@@ -20,16 +20,13 @@ pub struct Initialize<'info> {
     )]
     pub initializer_ata: InterfaceAccount<'info, TokenAccount>,
     #[account(
-        init,
-        payer = initializer,
-        space = Escrow::INIT_SPACE,
-        seeds = [b"state".as_ref(), &seed.to_le_bytes()],
+        mut,
+        seeds = [b"state".as_ref(), &escrow.seed.to_le_bytes()],
         bump
     )]
     pub escrow: Account<'info, Escrow>,
     #[account(
-        init,
-        payer = initializer,
+        mut,
         associated_token::mint = mint,
         associated_token::authority = escrow,
         associated_token::token_program = token_program,
@@ -40,29 +37,9 @@ pub struct Initialize<'info> {
     pub system_program: Program<'info, System>,
 }
 
-impl<'info> Initialize<'info> {
-    pub fn initialize_escrow(
-        &mut self,
-        seed: u64,
-        bumps: &InitializeBumps,
-        one_time_amount: u64,
-        max_amount: u64,
-        deposit_amount: u64,
-    ) -> Result<()> {
-        self.escrow.set_inner(Escrow {
-            seed,
-            bump: bumps.escrow,
-            initializer: self.initializer.key(),
-            mint: self.mint.key(),
-            one_time_amount,
-            max_amount,
-            deposit_amount,
-            remaining_amount: deposit_amount,
-        });
-        Ok(())
-    }
-
+impl<'info> Deposit<'info> {
     pub fn deposit(&mut self, deposit_amount: u64) -> Result<()> {
+        self.escrow.remaining_amount += deposit_amount;
         transfer_checked(
             self.into_deposit_context(),
             deposit_amount,
